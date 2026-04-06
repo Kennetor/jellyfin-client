@@ -228,8 +228,8 @@ function renderLogin() {
     } else {
       const saved = getSavedServers()
       listEl.innerHTML = `
-        <p style="font-size:12px; color:#f87171; margin:0 0 8px; text-align:center;">No servers found automatically</p>
-        ${saved.length > 0 ? renderServerListHTML(saved, 'Recent') : ''}
+        <p style="font-size:12px; color:#888; margin:0 0 8px; text-align:center;">Browser blocked local network scan.<br>Enter your server IP manually.</p>
+        ${saved.length > 0 ? renderServerListHTML(saved, 'Recent Servers') : ''}
       `
       attachServerListHandlers()
     }
@@ -300,16 +300,29 @@ function attachServerListHandlers() {
 }
 
 async function silentDiscover() {
+  const lastServer = getLastServer()
+  const saved = getSavedServers()
+
+  // Always show saved servers immediately
+  if (saved.length > 0) {
+    const listEl = document.getElementById('server-list')
+    if (listEl) {
+      listEl.innerHTML = renderServerListHTML(saved, 'Recent Servers')
+      attachServerListHandlers()
+    }
+  }
+
+  // Try subnet scan (will silently fail if browser blocks it)
   const found = await discoverServers()
   if (found.length === 0) return
+
   const listEl = document.getElementById('server-list')
   if (!listEl) return
-  // Merge with saved, deduplicate
-  const saved = getSavedServers()
   const all = [...new Set([...found, ...saved])]
-  listEl.innerHTML = renderServerListHTML(all, found.length > 0 ? 'Available servers' : 'Recent')
+  listEl.innerHTML = renderServerListHTML(all, 'Available Servers')
   attachServerListHandlers()
-  // Pre-fill if only one found and field is empty
+
+  // Auto-fill only if field is still empty
   const serverInput = document.getElementById('server')
   if (found.length === 1 && !serverInput?.value) {
     serverInput.value = found[0]

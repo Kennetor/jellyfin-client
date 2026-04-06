@@ -143,8 +143,25 @@ export function imageUrl(itemId, type = 'Primary', width = 300) {
 }
 
 // Build HLS transcoded stream URL
-export function hlsStreamUrl(itemId) {
-  return `${SERVER}/Videos/${itemId}/master.m3u8?api_key=${TOKEN}&VideoCodec=h264&AudioCodec=aac&MaxVideoBitDepth=8&MaxRefFrames=4&TranscodingMaxAudioChannels=2&RequireAvc=true&SegmentContainer=ts&MinSegments=2&BreakOnNonKeyFrames=true`
+export function hlsStreamUrl(itemId, width = 1920, height = 1080, bitrate = 40000000) {
+  const params = new URLSearchParams({
+    DeviceId: DEVICE_ID,
+    MediaSourceId: itemId,
+    VideoCodec: 'h264',
+    AudioCodec: 'aac',
+    MaxStreamingBitrate: String(bitrate),
+    VideoBitrate: String(Math.floor(bitrate * 0.9)),
+    AudioBitrate: '384000',
+    MaxWidth: String(width),
+    MaxHeight: String(height),
+    TranscodingMaxAudioChannels: '6',
+    RequireAvc: 'true',
+    SegmentContainer: 'ts',
+    MinSegments: '2',
+    BreakOnNonKeyFrames: 'true',
+    api_key: TOKEN,
+  })
+  return `${SERVER}/Videos/${itemId}/main.m3u8?${params}`
 }
 
 // Build playback stream URL
